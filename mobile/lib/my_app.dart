@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Sevima Hackaton',
-      
       home: Scaffold(
-        body: Container(),
+        body: Center(child: Text('Offlearn Mobile App Setup Complete')),
       )
     );
   }
