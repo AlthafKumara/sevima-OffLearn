@@ -1,0 +1,12 @@
+import express from 'express';
+import { createQuiz, getQuizzes, getQuizById } from '../controllers/quizController.js';
+import { createQuizQuestion } from '../controllers/quizQuestionController.js';
+import { getQuizAttemptsByQuiz } from '../controllers/quizAttemptController.js';
+import { checkRole } from '../middlewares/checkRole.js';
+const router = express.Router();
+router.post('/', checkRole(['guru']), createQuiz);
+router.get('/', getQuizzes);
+router.get('/:id', getQuizById);
+router.post('/:quizId/questions', checkRole(['guru']), createQuizQuestion);
+router.get('/:id/attempts', checkRole(['guru']), getQuizAttemptsByQuiz);
+export default router;

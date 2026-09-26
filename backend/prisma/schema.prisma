@@ -1,18 +1,112 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  role      String   @default("STUDENT") // STUDENT or TEACHER
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model modules {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subject_id       String?            @db.Uuid
+  created_by       String?            @db.Uuid
+  judul            String
+  konten           String
+  target_kelas     String?
+  versi            Int?               @default(1)
+  status           String?            @default("draft")
+  urutan           Int?
+  updated_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  profiles         profiles?          @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subjects         subjects?          @relation(fields: [subject_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  student_progress student_progress[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model profiles {
+  id               String             @id @db.Uuid
+  role             String
+  nama             String
+  kelas            String?
+  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  modules          modules[]
+  quiz_attempts    quiz_attempts[]
+  quizzes          quizzes[]
+  student_progress student_progress[]
+}
+
+model quiz_answers {
+  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  attempt_id         String?         @db.Uuid
+  question_id        String?         @db.Uuid
+  selected_option_id String?         @db.Uuid
+  quiz_attempts      quiz_attempts?  @relation(fields: [attempt_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  quiz_questions     quiz_questions? @relation(fields: [question_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  quiz_options       quiz_options?   @relation(fields: [selected_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model quiz_attempts {
+  id               String         @id @db.Uuid
+  user_id          String?        @db.Uuid
+  quiz_id          String?        @db.Uuid
+  skor             Decimal?       @db.Decimal
+  client_timestamp DateTime       @db.Timestamptz(6)
+  quiz_answers     quiz_answers[]
+  quizzes          quizzes?       @relation(fields: [quiz_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  profiles         profiles?      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model quiz_options {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question_id    String?         @db.Uuid
+  teks_opsi      String
+  is_benar       Boolean?        @default(false)
+  quiz_answers   quiz_answers[]
+  quiz_questions quiz_questions? @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model quiz_questions {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quiz_id      String?        @db.Uuid
+  pertanyaan   String
+  tipe_soal    String?        @default("pilihan_ganda")
+  urutan       Int?
+  quiz_answers quiz_answers[]
+  quiz_options quiz_options[]
+  quizzes      quizzes?       @relation(fields: [quiz_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model quizzes {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subject_id     String?          @db.Uuid
+  created_by     String?          @db.Uuid
+  nama_quiz      String
+  target_kelas   String?
+  status         String?          @default("draft")
+  updated_at     DateTime?        @default(now()) @db.Timestamptz(6)
+  quiz_attempts  quiz_attempts[]
+  quiz_questions quiz_questions[]
+  profiles       profiles?        @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subjects       subjects?        @relation(fields: [subject_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model student_progress {
+  id               String    @id @db.Uuid
+  user_id          String?   @db.Uuid
+  module_id        String?   @db.Uuid
+  status           String?
+  client_timestamp DateTime  @db.Timestamptz(6)
+  modules          modules?  @relation(fields: [module_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  profiles         profiles? @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model subjects {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nama_subject String    @unique
+  modules      modules[]
+  quizzes      quizzes[]
 }
