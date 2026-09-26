@@ -3,12 +3,14 @@ import { toProfileResponse } from '../models/profileResponseDto.js';
 
 export const createProfile = async (req, res) => {
   try {
-    const data = req.body;
-    const existing = await prisma.profiles.findUnique({ where: { id: data.id } });
+    const {id, nama, role, kelas } = req.body;
+
+    console.log(req.body);
+    const existing = await prisma.profiles.findUnique({ where: { id: id } });
     if (existing) {
       return res.status(409).json({ success: false, message: 'Profile dengan id ini sudah ada' });
     }
-    const profile = await prisma.profiles.create({ data });
+    const profile = await prisma.profiles.create({data : { id : id, nama : nama, role : role, kelas : kelas }});
     return res.status(201).json({ success: true, message: 'Profile berhasil dibuat', data: toProfileResponse(profile) });
   } catch (error) {
     console.error(error);
