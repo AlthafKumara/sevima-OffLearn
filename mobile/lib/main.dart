@@ -7,16 +7,21 @@ import 'package:mobile/my_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await dotenv.load(fileName: ".env");
 
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL'] ?? '',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+    publishableKey: dotenv.env['SUPABASE_PUBLIC_KEY'] ?? '',
   );
 
   final appDocumentDir = await getApplicationDocumentsDirectory();
   Hive.init(appDocumentDir.path);
+
+  // Open boxes for offline storage
+  await Hive.openBox<String>('subjects');
+  await Hive.openBox<String>('modules');
+  await Hive.openBox<String>('quizzes');
 
   runApp(const MyApp());
 }
